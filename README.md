@@ -1,3 +1,9 @@
+# dino-park-data-dev
+
+Tool to test out data on api requests
+
+From:
+
 # DinoParkLocalDev
 
 Proxy all the things! This helps developing [DinoPark's front-end](https://github.com/mozilla-iam/dino-park-front-end/)
@@ -6,6 +12,7 @@ against the DinoPark developer preview: [https://dinopark.k8s.dev.sso.allizom.or
 ## Setup
 
 ### (Optional) mkcert
+
 Install [mkcert](https://github.com/FiloSottile/mkcert) to enable seamless https.
 
 ```bash
