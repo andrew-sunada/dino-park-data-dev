@@ -2,16 +2,23 @@ let enabled = false;
 
 function toggleDataListener(e) {
   const header = document.getElementById('dp-header');
+  const toggleButton = document.getElementById('toggle-button');
   if (!enabled) {
     console.log('Enabling');
     enabled = true;
     header.classList.add('active');
+    toggleButton.classList.remove('btn-primary');
+    toggleButton.classList.add('btn-secondary');
+    toggleButton.innerHTML = 'Deactivate';
     browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
     browser.runtime.sendMessage({ enabled: 'true' });
   } else {
     console.log('Disabling');
     enabled = false;
     header.classList.remove('active');
+    toggleButton.classList.remove('btn-secondary');
+    toggleButton.classList.add('btn-primary');
+    toggleButton.innerHTML = 'Activate';
     browser.browserAction.setIcon({ path: { '64': '../icons/hollow-bat-symbol.png' } });
     browser.runtime.sendMessage({ enabled: 'false' });
   }

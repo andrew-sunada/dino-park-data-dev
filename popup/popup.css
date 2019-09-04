@@ -1,6 +1,11 @@
 html,
 body {
   width: 300px;
+  border: none;
+  box-shadow: none;
+}
+body {
+  padding: 1em;
 }
 h1 {
   color: gray;
@@ -34,4 +39,6 @@ h1.active {
 .child-form__submit {
   width: 10%;
   display: block;
+  padding-left: 0;
+  padding-right: 0;
 }
