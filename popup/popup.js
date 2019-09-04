@@ -29,6 +29,10 @@ function resetForm() {
 }
 
 function addChildList(itemContainer) {
+  const itemLi = document.createElement('li');
+  const newLabelEl = document.createElement('label');
+  const newValueEl = document.createElement('span');
+  const itemList = itemContainer.querySelector('.data-form__child-rows');
   const itemLabel = itemContainer.querySelector('label');
   const itemValue = itemContainer.querySelector('input[type="hidden"]');
   const labelFor = itemLabel.getAttribute('for');
@@ -36,10 +40,17 @@ function addChildList(itemContainer) {
   if (itemValue.value !== '') {
     map = JSON.parse(itemValue.value);
   }
-  const newLabel = itemContainer.querySelector('.child-form__label-input').value;
-  const newValue = itemContainer.querySelector('.child-form__value-input').value;
-  map[newLabel] = newValue;
+  const newLabel = itemContainer.querySelector('.child-form__label-input');
+  const newValue = itemContainer.querySelector('.child-form__value-input');
+  map[newLabel.value] = newValue.value;
   itemValue.value = JSON.stringify(map);
+  newLabelEl.innerHTML = newLabel.value;
+  newValueEl.innerHTML = newValue.value;
+  newLabel.value = '';
+  newValue.value = '';
+  itemLi.appendChild(newLabelEl);
+  itemLi.appendChild(newValueEl);
+  itemList.appendChild(itemLi);
 }
 
 let getting = browser.runtime.getBackgroundPage();
@@ -49,9 +60,15 @@ getting.then(
     const header = document.getElementById('dp-header');
     if (enabled) {
       header.classList.add('active');
+      toggleButton.classList.remove('btn-primary');
+      toggleButton.classList.add('btn-secondary');
+      toggleButton.innerHTML = 'Deactivate';
       browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
     } else {
       header.classList.remove('active');
+      toggleButton.classList.remove('btn-secondary');
+      toggleButton.classList.add('btn-primary');
+      toggleButton.innerHTML = 'Activate';
       browser.browserAction.setIcon({ path: { '64': '../icons/hollow-bat-symbol.png' } });
     }
   },
