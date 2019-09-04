@@ -1,0 +1,34 @@
+{
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "asunada1@mozilla.com",
+      "strict_min_version": "0.0.1"
+    }
+  },
+  "manifest_version": 2,
+  "name": "DinoParkDataDev",
+  "description": "Test out incoming data for local dev.",
+  "version": "0.0.1",
+  "author": "Andrew Sunada",
+  "homepage_url": "https://github.com/andrew-sunada/dino-park-data-dev",
+  "icons": {
+    "64": "icons/batman-xxl.png"
+  },
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "https://dinopark.k8s.dev.sso.allizom.org/",
+    "https://dinopark.k8s.test.sso.allizom.org/",
+    "https://people.mozilla.org/"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_icon": {
+      "64": "icons/hollow-bat-symbol.png"
+    },
+    "default_title": "DinoParkLocalDev",
+    "default_popup": "popup/popup.html"
+  }
+}

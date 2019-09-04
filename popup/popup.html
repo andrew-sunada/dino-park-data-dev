@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1 id="dp-header">Dino Park Data</h1>
+    <button id="toggle-button">Activate</button>
+    <button id="reset-form">Reset form</button>
+    <form id="data-form">
+      <div class="data-form__row">
+        <label for="firstName">First Name:</label>
+        <input name="firstName" id="first-name" />
+      </div>
+      <div class="data-form__row">
+        <label for="lastName">Last Name:</label>
+        <input name="lastName" id="last-name" />
+      </div>
+      <div class="data-form__row">
+        <label for="uris">Uris:</label>
+        <input type="hidden" name="uris" />
+        <ul class="data-form__child-rows"></ul>
+        <div class="data-form__child-form">
+          <input class="child-form__item child-form__label-input" placeholder="Label" />
+          <input class="child-form__item child-form__value-input" placeholder="Value" />
+          <button type="button" class="child-form__submit">
+            +
+          </button>
+        </div>
+      </div>
+      <button type="submit" id="data-form__submit">Submit</button>
+    </form>
+    <script src="./popup.js"></script>
+  </body>
+</html>
