@@ -42,3 +42,13 @@ h1.active {
   padding-left: 0;
   padding-right: 0;
 }
+
+.data-form__child-rows {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.data-form__child-rows > li label {
+  margin-right: 0.5em;
+}
