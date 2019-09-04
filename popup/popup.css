@@ -1,0 +1,37 @@
+html,
+body {
+  width: 300px;
+}
+h1 {
+  color: gray;
+}
+
+h1.active {
+  color: green;
+}
+
+.data-form__row {
+  border-top: 1px solid gray;
+  padding: 1em 0;
+}
+
+.data-form__row:first-child {
+  border-top: none;
+}
+
+.data-form__child-form {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.child-form__item {
+  /* margin: 0 3em; */
+  width: 40%;
+  display: block;
+}
+
+.child-form__submit {
+  width: 10%;
+  display: block;
+}

@@ -1,12 +1,18 @@
 {
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "asunada1@mozilla.com",
+      "strict_min_version": "0.0.1"
+    }
+  },
   "manifest_version": 2,
-  "name": "DinoParkLocalDev",
-  "description": "Connect local front end to DinoPark.",
-  "version": "0.0.10",
-  "author": "Florian Merz",
-  "homepage_url": "https://github.com/fiji-flo/dinoparklocaldev",
+  "name": "DinoParkDataDev",
+  "description": "Test out incoming data for local dev.",
+  "version": "0.0.2",
+  "author": "Andrew Sunada",
+  "homepage_url": "https://github.com/andrew-sunada/dino-park-data-dev",
   "icons": {
-    "64": "icons/icon.svg"
+    "64": "icons/batman-xxl.png"
   },
   "permissions": [
     "webRequest",
@@ -20,8 +26,9 @@
   },
   "browser_action": {
     "default_icon": {
-      "64": "icons/icon-grey.svg"
+      "64": "icons/hollow-bat-symbol.png"
     },
-    "default_title": "DinoParkLocalDev"
+    "default_title": "DinoParkLocalDev",
+    "default_popup": "popup/popup.html"
   }
 }
