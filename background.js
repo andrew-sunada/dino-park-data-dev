@@ -55,11 +55,16 @@ async function redirect(requestDetails) {
           continue;
         }
         if (dataToWrite[key].hasOwnProperty('values')) {
-          dataJSON.data.profile[key].values = dataToWrite[key].values;
+          dataJSON.data.profile[key].values = Object.assign(
+            dataJSON.data.profile[key].values,
+            dataToWrite[key].values
+          );
         } else {
+          console.log(`Writing value: ${dataToWrite[key].value} to key: ${key}`);
           dataJSON.data.profile[key].value = dataToWrite[key].value;
         }
       }
+      console.log('writing json: ', dataJSON);
       filter.write(encoder.encode(JSON.stringify(dataJSON)));
       filter.disconnect();
     };
@@ -148,7 +153,9 @@ function copyFormToData(form) {
       if (dataToWrite[key].hasOwnProperty('values')) {
         dataToWrite[key].values = form[key];
       } else {
-        dataToWrite[key].value = form[key];
+        if (form[key] !== '') {
+          dataToWrite[key].value = form[key];
+        }
       }
     }
   }
@@ -157,7 +164,11 @@ function copyFormToData(form) {
 function resetForm() {
   for (let key in dataToWrite) {
     if (key in dataToWrite) {
-      dataToWrite[key].value = null;
+      if (dataToWrite[key].hasOwnProperty('values')) {
+        dataToWrite[key].values = null;
+      } else {
+        dataToWrite[key].value = null;
+      }
     }
   }
 }
