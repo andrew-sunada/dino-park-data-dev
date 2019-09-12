@@ -89,7 +89,7 @@ form.onsubmit = function(event) {
     if (!form.hasOwnProperty(key) || form[key].type === 'button') {
       continue;
     }
-    if (form[key].type === 'hidden') {
+    if (form[key].type === 'hidden' && form[key].value) {
       sendable[form[key].name] = JSON.parse(form[key].value);
     } else if (form[key].getAttribute('name')) {
       sendable[form[key].name] = form[key].value;
