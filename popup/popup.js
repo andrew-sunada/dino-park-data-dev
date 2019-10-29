@@ -1,26 +1,94 @@
-let enabled = false;
+/**
+ * TODO: Split this out to enable FE, BE, Graphql separately
+ */
 
-function toggleDataListener(e) {
+const FE_BUTTON_ID = 'toggle-fe-button';
+const BE_BUTTON_ID = 'toggle-be-button';
+const GRAPHQL_BUTTON_ID = 'toggle-graphql-button';
+const FE_KEY = 'fe_enabled';
+const BE_KEY = 'be_enabled';
+const GRAPHQL_KEY = 'graphql_enabled';
+let enabled = {
+  [FE_KEY]: false,
+  [BE_KEY]: false,
+  [GRAPHQL_KEY]: false,
+};
+
+const BE_TEXT = 'BE';
+const FE_TEXT = 'FE';
+const GRAPHQL_TEXT = 'GraphQL';
+const ACTIVATE_TEXT = 'Activate';
+const DEACTIVATE_TEXT = 'Deactivate';
+
+function toggleBEListener(e) {
   const header = document.getElementById('dp-header');
-  const toggleButton = document.getElementById('toggle-button');
-  if (!enabled) {
-    console.log('Enabling');
-    enabled = true;
+  const toggleButton = document.getElementById(BE_BUTTON_ID);
+  if (!enabled[BE_KEY]) {
+    console.log('Enabling be');
+    enabled[BE_KEY] = true;
     header.classList.add('active');
     toggleButton.classList.remove('btn-primary');
     toggleButton.classList.add('btn-secondary');
-    toggleButton.innerHTML = 'Deactivate';
-    browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
-    browser.runtime.sendMessage({ enabled: 'true' });
+    toggleButton.innerHTML = `${DEACTIVATE_TEXT} ${BE_TEXT}`;
+    // browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
+    browser.runtime.sendMessage({ [BE_KEY]: 'true' });
   } else {
-    console.log('Disabling');
-    enabled = false;
+    console.log('Disabling be');
+    enabled[BE_KEY] = false;
     header.classList.remove('active');
     toggleButton.classList.remove('btn-secondary');
     toggleButton.classList.add('btn-primary');
-    toggleButton.innerHTML = 'Activate';
-    browser.browserAction.setIcon({ path: { '64': '../icons/hollow-bat-symbol.png' } });
-    browser.runtime.sendMessage({ enabled: 'false' });
+    toggleButton.innerHTML = `${ACTIVATE_TEXT} ${BE_TEXT}`;
+    // browser.browserAction.setIcon({ path: { '64': '../icons/hollow-bat-symbol.png' } });
+    browser.runtime.sendMessage({ [BE_KEY]: 'false' });
+  }
+}
+
+function toggleFEListener(e) {
+  const header = document.getElementById('dp-header');
+  const toggleButton = document.getElementById(FE_BUTTON_ID);
+  if (!enabled[FE_KEY]) {
+    console.log('Enabling fe');
+    enabled[FE_KEY] = true;
+    header.classList.add('active');
+    toggleButton.classList.remove('btn-primary');
+    toggleButton.classList.add('btn-secondary');
+    toggleButton.innerHTML = `${DEACTIVATE_TEXT} ${FE_TEXT}`;
+    // browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
+    browser.runtime.sendMessage({ [FE_KEY]: 'true' });
+  } else {
+    console.log('Disabling fe');
+    enabled[FE_KEY] = false;
+    header.classList.remove('active');
+    toggleButton.classList.remove('btn-secondary');
+    toggleButton.classList.add('btn-primary');
+    toggleButton.innerHTML = `${ACTIVATE_TEXT} ${FE_TEXT}`;
+    // browser.browserAction.setIcon({ path: { '64': '../icons/hollow-bat-symbol.png' } });
+    browser.runtime.sendMessage({ [FE_KEY]: 'false' });
+  }
+}
+
+function toggleGraphQLListener(e) {
+  const header = document.getElementById('dp-header');
+  const toggleButton = document.getElementById(GRAPHQL_BUTTON_ID);
+  if (!enabled[GRAPHQL_KEY]) {
+    console.log('Enabling graphql');
+    enabled[GRAPHQL_KEY] = true;
+    header.classList.add('active');
+    toggleButton.classList.remove('btn-primary');
+    toggleButton.classList.add('btn-secondary');
+    toggleButton.innerHTML = `${DEACTIVATE_TEXT} ${GRAPHQL_TEXT}`;
+    // browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
+    browser.runtime.sendMessage({ [GRAPHQL_KEY]: 'true' });
+  } else {
+    console.log('Disabling graphql');
+    enabled[GRAPHQL_KEY] = false;
+    header.classList.remove('active');
+    toggleButton.classList.remove('btn-secondary');
+    toggleButton.classList.add('btn-primary');
+    toggleButton.innerHTML = `${ACTIVATE_TEXT} ${GRAPHQL_TEXT}`;
+    // browser.browserAction.setIcon({ path: { '64': '../icons/hollow-bat-symbol.png' } });
+    browser.runtime.sendMessage({ [GRAPHQL_KEY]: 'false' });
   }
 }
 
@@ -53,23 +121,42 @@ function addChildList(itemContainer) {
   itemList.appendChild(itemLi);
 }
 
+const toggleFEButton = document.getElementById(FE_BUTTON_ID);
+toggleFEButton.onclick = toggleFEListener;
+const toggleBEButton = document.getElementById(BE_BUTTON_ID);
+toggleBEButton.onclick = toggleBEListener;
+const toggleGraphQLButton = document.getElementById(GRAPHQL_BUTTON_ID);
+toggleGraphQLButton.onclick = toggleGraphQLListener;
+
 let getting = browser.runtime.getBackgroundPage();
 getting.then(
   page => {
     enabled = page.getEnabled();
+    console.log('Enabled: ', enabled);
     const header = document.getElementById('dp-header');
-    if (enabled) {
-      header.classList.add('active');
-      toggleButton.classList.remove('btn-primary');
-      toggleButton.classList.add('btn-secondary');
-      toggleButton.innerHTML = 'Deactivate';
-      browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
-    } else {
-      header.classList.remove('active');
-      toggleButton.classList.remove('btn-secondary');
-      toggleButton.classList.add('btn-primary');
-      toggleButton.innerHTML = 'Activate';
-      browser.browserAction.setIcon({ path: { '64': '../icons/hollow-bat-symbol.png' } });
+    for (let key in enabled) {
+      let toggleButton = null;
+      let innerText = '';
+      if (!enabled.hasOwnProperty(key) || !enabled[key]) {
+        continue;
+      }
+      if (key === FE_KEY) {
+        toggleButton = toggleFEButton;
+        innerText = `${DEACTIVATE_TEXT} ${FE_TEXT}`;
+      } else if (key === BE_KEY) {
+        toggleButton = toggleBEButton;
+        innerText = `${DEACTIVATE_TEXT} ${BE_TEXT}`;
+      } else if (key === GRAPHQL_KEY) {
+        toggleButton = toggleGraphQLButton;
+        innerText = `${DEACTIVATE_TEXT} ${GRAPHQL_TEXT}`;
+      }
+      if (toggleButton !== null) {
+        header.classList.add('active');
+        toggleButton.innerHTML = innerText;
+        toggleButton.classList.remove('btn-primary');
+        toggleButton.classList.add('btn-secondary');
+        browser.browserAction.setIcon({ path: { '64': '../icons/batman-xxl.png' } });
+      }
     }
   },
   error => {
@@ -77,11 +164,10 @@ getting.then(
   }
 );
 
-const toggleButton = document.getElementById('toggle-button');
-toggleButton.onclick = toggleDataListener;
 const resetButton = document.getElementById('reset-form');
 resetButton.onclick = resetForm;
 const form = document.getElementById('data-form');
+console.log('Running popup.js');
 form.onsubmit = function(event) {
   const form = event.target;
   const sendable = {};
