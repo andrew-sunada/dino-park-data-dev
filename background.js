@@ -2,12 +2,17 @@ const DP_DEV_HOST = 'dinopark.k8s.dev.sso.allizom.org';
 const DP_TEST_HOST = 'dinopark.k8s.test.sso.allizom.org';
 const DP_PROD_HOST = 'people.mozilla.org';
 const DP_HOST_NAMES = [DP_DEV_HOST, DP_TEST_HOST, DP_PROD_HOST];
+
 const DP_DEV_PATTERN = `https://${DP_DEV_HOST}/*`;
 const DP_TEST_PATTERN = `https://${DP_TEST_HOST}/*`;
 const DP_PROD_PATTERN = `https://${DP_PROD_HOST}/*`;
 const DP_PATTERN = [DP_DEV_PATTERN, DP_TEST_PATTERN, DP_PROD_PATTERN];
+
 const FRONT_END_PATTERN = /https:\/\/(dinopark\.k8s\..*\.sso\.allizom|people\.mozilla)\.org\/(.*.js|css|img).*/;
+const INDEX_PATTERN = /https:\/\/(dinopark\.k8s\..*\.sso\.allizom|people\.mozilla)\.org\/[a-z]?(\/[0-9a-zA-Z-_=]*)?(\?.*)?$/;
+const WHOAMI_PATTERN = /https:\/\/(dinopark\.k8s\..*\.sso\.allizom|people\.mozilla)\.org\/whoami\/.*/;
 const GRAPHQL_PATTERN = /.*api\/v4\/graphql.*/;
+
 const BLACK_LIST = [
   'content-security-policy',
   'x-content-type-options',
@@ -15,7 +20,30 @@ const BLACK_LIST = [
   'x-xss-protection',
 ];
 
-let enabled = false;
+const GA_CODE = `<!-- Global site tag (gtag.js) - Google Analytics -->
+<script
+  async
+  src="https://www.googletagmanager.com/gtag/js?id=G-3919QT0M94"
+></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag('js', new Date());
+
+  gtag('config', 'G-3919QT0M94');
+</script>`;
+
+const BE_KEY = 'be_enabled';
+const FE_KEY = 'fe_enabled';
+const GRAPHQL_KEY = 'graphql_enabled';
+
+let enabled = {
+  [BE_KEY]: false,
+  [FE_KEY]: false,
+  [GRAPHQL_KEY]: false,
+};
 let dataToWrite = {
   firstName: {
     value: null,
@@ -27,9 +55,12 @@ let dataToWrite = {
     values: null,
   },
 };
-
-async function redirect(requestDetails) {
+/**
+ * TODO: Make it so that you can enable FE, BE, Graphql
+ */
+async function redirectGraphQL(requestDetails) {
   if (requestDetails.url.match(GRAPHQL_PATTERN)) {
+    console.log('Graphql pattern: ', requestDetails.url);
     let filter = browser.webRequest.filterResponseData(
       requestDetails.requestId
     );
@@ -60,7 +91,9 @@ async function redirect(requestDetails) {
             dataToWrite[key].values
           );
         } else {
-          console.log(`Writing value: ${dataToWrite[key].value} to key: ${key}`);
+          console.log(
+            `Writing value: ${dataToWrite[key].value} to key: ${key}`
+          );
           dataJSON.data.profile[key].value = dataToWrite[key].value;
         }
       }
@@ -69,12 +102,50 @@ async function redirect(requestDetails) {
       filter.disconnect();
     };
   }
+}
+
+async function redirectFE(requestDetails) {
   if (requestDetails.url.match(FRONT_END_PATTERN)) {
+    console.log('FE Pattern: ', requestDetails.url);
     const url = new URL(requestDetails.url);
     url.hostname = 'localhost';
     url.port = 8080;
     console.log(`Redirecting: ${requestDetails.url} → ${url.toString()}`);
 
+    return { redirectUrl: url.toString() };
+  }
+  if (requestDetails.url.match(INDEX_PATTERN)) {
+    console.log('Index pattern: ', requestDetails.url);
+    let filter = browser.webRequest.filterResponseData(
+      requestDetails.requestId
+    );
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+    let completeData = '';
+    filter.ondata = (event) => {
+      console.log('Found data: ', event.data);
+      const str = decoder.decode(event.data, { stream: true });
+      // str = decoder.decode(str);
+      console.log('Decoded: ', str);
+      completeData += str;
+    };
+    filter.onstop = (event) => {
+      completeData = completeData.replace('<head>', '<head>' + GA_CODE);
+      filter.write(encoder.encode(completeData));
+      filter.disconnect();
+    };
+  }
+}
+
+async function redirectBE(requestDetails) {
+  if (requestDetails.url.match(WHOAMI_PATTERN)) {
+    console.log('Backend pattern: ', requestDetails.url);
+    const url = new URL(requestDetails.url);
+    url.protocol = 'http';
+    url.hostname = 'localhost';
+    // url.hostname = 'c513f608.ngrok.io';
+    // url.port = 8084;
+    console.log(`Redirecting ssl: ${requestDetails.url} → ${url.toString()}`);
     return { redirectUrl: url.toString() };
   }
 }
@@ -109,16 +180,17 @@ function fixJs(details) {
     };
   }
 }
-
-function enable() {
-  enabled = true;
-  browser.browserAction.setIcon({ path: { '64': 'icons/batman-xxl.png' } });
+// function enable() {
+//   enabled = true;
+//   browser.browserAction.setIcon({ path: { '64': 'icons/batman-xxl.png' } });
+// }
+function enableFE() {
   browser.webRequest.onBeforeRequest.addListener(fixJs, { urls: DP_PATTERN }, [
     'blocking',
   ]);
 
   browser.webRequest.onBeforeRequest.addListener(
-    redirect,
+    redirectFE,
     { urls: DP_PATTERN },
     ['blocking']
   );
@@ -130,16 +202,63 @@ function enable() {
   );
 }
 
-function disable() {
+function enableFE() {
+  browser.webRequest.onBeforeRequest.addListener(fixJs, { urls: DP_PATTERN }, [
+    'blocking',
+  ]);
+
+  browser.webRequest.onBeforeRequest.addListener(
+    redirectFE,
+    { urls: DP_PATTERN },
+    ['blocking']
+  );
+
+  browser.webRequest.onHeadersReceived.addListener(
+    unsecure,
+    { urls: DP_PATTERN },
+    ['blocking', 'responseHeaders']
+  );
+}
+
+function disableFE() {
   browser.webRequest.onBeforeRequest.removeListener(fixJs);
 
-  browser.webRequest.onBeforeRequest.removeListener(redirect);
+  browser.webRequest.onBeforeRequest.removeListener(redirectFE);
 
   browser.webRequest.onHeadersReceived.removeListener(unsecure);
-  enabled = false;
-  browser.browserAction.setIcon({
-    path: { '64': 'icons/hollow-bat-symbol.png' },
-  });
+  // browser.browserAction.setIcon({ path: { '64': 'icons/hollow-bat-symbol.png' } });
+  console.log('disabled');
+}
+
+function enableBE() {
+  browser.webRequest.onBeforeRequest.addListener(
+    redirectBE,
+    { urls: DP_PATTERN },
+    ['blocking']
+  );
+}
+function disableBE() {
+  browser.webRequest.onBeforeRequest.removeListener(redirectBE);
+}
+
+function enableGraphQL() {
+  browser.webRequest.onBeforeRequest.addListener(
+    redirectGraphQL,
+    { urls: DP_PATTERN },
+    ['blocking']
+  );
+}
+function disableGraphQL() {
+  browser.webRequest.onBeforeRequest.removeListener(redirectGraphQL);
+}
+
+function disableFE() {
+  browser.webRequest.onBeforeRequest.removeListener(fixJs);
+
+  browser.webRequest.onBeforeRequest.removeListener(redirectFE);
+
+  browser.webRequest.onHeadersReceived.removeListener(unsecure);
+  // browser.browserAction.setIcon({ path: { '64': 'icons/hollow-bat-symbol.png' } });
   console.log('disabled');
 }
 
@@ -174,14 +293,35 @@ function resetForm() {
 }
 
 browser.runtime.onMessage.addListener((message) => {
-  if (message.hasOwnProperty('enabled')) {
-    enabled = message.enabled === 'true';
-    if (enabled) {
-      enable();
-      console.log('Enabling!');
+  console.log('Found message: ', message);
+  if (message.hasOwnProperty(BE_KEY)) {
+    enabled[BE_KEY] = message[BE_KEY] === 'true';
+    if (enabled[BE_KEY]) {
+      enableBE();
+      console.log('Enabling be!');
     } else {
-      disable();
-      console.log('Disabling!');
+      disableBE();
+      console.log('Disabling be!');
+    }
+  }
+  if (message.hasOwnProperty(FE_KEY)) {
+    enabled[FE_KEY] = message[FE_KEY] === 'true';
+    if (enabled[FE_KEY]) {
+      enableFE();
+      console.log('Enabling fe!');
+    } else {
+      disableFE();
+      console.log('Disabling fe!');
+    }
+  }
+  if (message.hasOwnProperty(GRAPHQL_KEY)) {
+    enabled[GRAPHQL_KEY] = message[GRAPHQL_KEY] === 'true';
+    if (enabled[GRAPHQL_KEY]) {
+      enableGraphQL();
+      console.log('Enabling graphql!');
+    } else {
+      disableGraphQL();
+      console.log('Disabling graphql!');
     }
   }
   if (message.hasOwnProperty('form')) {
