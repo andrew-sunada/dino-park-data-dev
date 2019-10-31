@@ -102,7 +102,6 @@ async function redirectGraphQL(requestDetails) {
 
 async function redirectFE(requestDetails) {
   if (requestDetails.url.match(FRONT_END_PATTERN)) {
-    console.log('FE Pattern: ', requestDetails.url);
     const url = new URL(requestDetails.url);
     url.hostname = 'localhost';
     url.port = 8080;
@@ -113,14 +112,11 @@ async function redirectFE(requestDetails) {
   if (requestDetails.url.match(INDEX_PATTERN)) {
     console.log('Index pattern: ', requestDetails.url);
     let filter = browser.webRequest.filterResponseData(requestDetails.requestId);
-    const decoder = new TextDecoder();
-    const encoder = new TextEncoder();
+    const decoder = new TextDecoder('utf-8');
+    const encoder = new TextEncoder('utf-8');
     let completeData = '';
     filter.ondata = event => {
-      console.log('Found data: ', event.data);
       const str = decoder.decode(event.data, { stream: true });
-      // str = decoder.decode(str);
-      console.log('Decoded: ', str);
       completeData += str;
     };
     filter.onstop = event => {
@@ -133,11 +129,10 @@ async function redirectFE(requestDetails) {
 
 async function redirectBE(requestDetails) {
   if (requestDetails.url.match(WHOAMI_PATTERN)) {
-    console.log('Backend pattern: ', requestDetails.url);
     const url = new URL(requestDetails.url);
     url.protocol = 'http';
-    url.hostname = 'localhost';
-    // url.hostname = 'c513f608.ngrok.io';
+    // url.hostname = 'localhost';
+    url.hostname = 'f5885ac7.ngrok.io';
     // url.port = 8084;
     console.log(`Redirecting ssl: ${requestDetails.url} → ${url.toString()}`);
     return { redirectUrl: url.toString() };
@@ -164,17 +159,17 @@ function fixJs(details) {
 
     filter.ondata = event => {
       let str = decoder.decode(event.data, { stream: true });
-      str = str.replace(/\/js\/app\.js/g, '/app.js');
-      str = str.replace(/<script src="?\/js\/chunk\-vendors\.js"?><\/script>/g, '');
+      str = str.replace(/\/js\/app[A-Za-z0-9\-\.]*\.js/g, '/app.js');
+      str = str.replace(
+        /<script src="?\/js\/chunk\-[A-Za-z0-9\-\.]*\.js"?><\/script>/g,
+        ''
+      );
       filter.write(encoder.encode(str));
       filter.disconnect();
     };
   }
 }
-// function enable() {
-//   enabled = true;
-//   browser.browserAction.setIcon({ path: { '64': 'icons/batman-xxl.png' } });
-// }
+
 function enableFE() {
   browser.webRequest.onBeforeRequest.addListener(fixJs, { urls: DP_PATTERN }, [
     'blocking',

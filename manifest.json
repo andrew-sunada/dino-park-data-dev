@@ -8,7 +8,7 @@
   "manifest_version": 2,
   "name": "DinoParkDataDev",
   "description": "Test out incoming data for local dev.",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "author": "Andrew Sunada",
   "homepage_url": "https://github.com/andrew-sunada/dino-park-data-dev",
   "icons": {
@@ -26,7 +26,7 @@
   },
   "browser_action": {
     "default_icon": {
-      "64": "icons/hollow-bat-symbol.png"
+      "64": "icons/batman-xxl.png"
     },
     "default_title": "DinoParkLocalDev",
     "default_popup": "popup/popup.html"
